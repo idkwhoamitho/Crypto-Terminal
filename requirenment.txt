@@ -1,0 +1,30 @@
+# --- Core UI & Framework ---
+textual==0.85.2
+rich==13.7.1
+python-dotenv==1.0.1
+
+# --- Data & Finance ---
+openbb==4.1.6
+yfinance==0.2.38
+pandas==2.2.2
+numpy==1.26.4
+
+# --- AI & Sentiment Analysis ---
+transformers==4.40.2
+tokenizers==0.19.2
+sentencepiece==0.2.0
+scipy==1.13.0
+
+# --- Portfolio Optimization ---
+PyPortfolioOpt==1.5.5
+cvxpy==1.4.3
+
+# --- Exchange & Execution ---
+ccxt==4.2.95
+
+# --- Machine Learning Backend (See Note Below) ---
+# For GPU support on Windows/Linux, users should install torch manually
+# to match their specific CUDA version, but we list the base here:
+torch
+torchvision
+torchaudio
