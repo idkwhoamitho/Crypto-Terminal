@@ -158,7 +158,7 @@ class OptimizerEngine:
 
 
 
-    def optimize(self, combined_data):
+    def optimize(self, combined_data,risk_free_rate=0.02):
         try:
             if self.prices.empty:
                 raise ValueError("Price DataFrame is empty")
@@ -177,8 +177,15 @@ class OptimizerEngine:
                     signal_tilt = sig_val * 0.5
 
                     mu[symbol] += (sentiment_tilt + signal_tilt)
-
-            
+                    
+            if (mu <= risk_free_rate).all():
+                    ef = EfficientFrontier(mu, s, weight_bounds=(0, 0.4))
+                    if "BTC" in mu.index:
+                        btc_index = mu.index.get_loc("BTC")
+                        ef.add_constraint(lambda w: w[btc_index] >= 0.10)
+                    
+                    ef.min_volatility()
+                    return dict(ef.clean_weights())
 
             ef = EfficientFrontier(mu, s, weight_bounds=(0, 0.4))
 

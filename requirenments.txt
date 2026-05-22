@@ -1,0 +1,28 @@
+# --- Core UI & Framework ---
+textual==0.85.2
+rich==13.7.1
+python-dotenv==1.0.1
+textual-plotext==0.2.0
+# --- Data & Finance ---
+openbb
+yfinance
+pandas
+numpy
+
+# --- AI & Sentiment Analysis ---
+transformers
+tokenizers
+sentencepiece
+scipy
+
+# --- Portfolio Optimization ---
+PyPortfolioOpt
+cvxpy
+
+# --- Exchange & Execution ---
+ccxt==4.2.95
+
+# --- Machine Learning Backend ---
+torch
+torchvision
+torchaudio

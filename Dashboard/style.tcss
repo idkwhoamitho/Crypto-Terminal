@@ -1,0 +1,72 @@
+#main-container {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 3fr 1fr; 
+    grid-rows: 2fr 1.5fr; /* Controls the height balance between top and bottom rows */
+    grid-gutter: 1;
+}
+
+/* Forces the bottom multi-column container to span across both grid columns */
+#bottom-row-container {
+    grid-columns: 2;
+    height: 100%;
+    layout: horizontal;
+}
+
+#data-sentiment-column {
+    width: 25%;
+    height: 100%;
+    border: tall magenta;
+    padding: 1;
+    overflow-y: scroll;
+}
+
+/* This targets the center area you highlighted */
+#portfolio-section {
+    width: 55%; /* Claims the wide middle space */
+    height: 100%;
+    border: tall yellow;
+    padding: 0;
+    layout: vertical;
+}
+
+#news-section {
+    width: 20%; /* Fills out the remaining right corner column space smoothly */
+    height: 100%;
+    border: tall cyan;
+    padding: 1;
+}
+
+/* --- Inner Portfolio UI Layout Tweaks --- */
+
+#portfolio-header {        
+    height: 3;                                                                                                  
+    content-align: center middle;                                                                           
+    padding: 0 1;                                                                                               
+    background: $surface-lighten-3;                                                                             
+}
+
+#portfolio-body {
+    layout: horizontal; /* Side-by-side distribution works perfectly here */
+    height: 1fr;
+}
+
+#weights-column {                                                                                               
+    width: 40%;
+    height: 100%;                                                                                               
+    padding: 1;                                                                                                 
+    border-right: solid $panel;                                                                                  
+}                                                                                                               
+
+#execution-column {                                                                                             
+    width: 60%;
+    height: 100%;                                                                                               
+    padding: 1;                                                                                                 
+    overflow-y: scroll;
+}                                                                                                               
+
+.column-header {                                                                                                
+    text-style: bold underline;                                                                                  
+    margin-bottom: 1;                                                                                          
+    color: $text-primary;                                                                                       
+}

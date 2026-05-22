@@ -5,3 +5,4 @@ quant_env/
 ./data/__pycache__
 Engine/
 include/
+.env 

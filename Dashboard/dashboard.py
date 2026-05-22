@@ -5,128 +5,89 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Brain.optimizer_engine import OptimizerEngine
+from Brain.trade_executor import TradeExecutor
 # ... other imports
 from openbb import obb
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Static, Digits
+from textual.widgets import Header, Footer, Label, Static, Digits
 from textual.containers import Container, Vertical, Horizontal
 from textual_plotext import PlotextPlot
 from textual import work
 from Brain.optimizer_engine import OptimizerEngine
 from data.get_data import Data
+from dotenv import load_dotenv
 import pandas as pd
 
 class QuantTerminalApp(App):
     # This CSS defines the "Bento Box" style layout
-    CSS = """
-    #main-container {
-        layout: grid;
-        grid-size: 2 2;
-        grid-columns: 3fr 1fr; 
-        grid-rows: 1fr 1fr;    /* Diubah dari 4fr 1fr ke 1fr 1fr agar news lebih tinggi */
-        grid-gutter: 1;
-    }
-    
-    #chart-section {
-        border: tall blue;
-        height: 100%;
-    }
-
-    #price-section {
-        border: tall green;
-        height: 100%;
-        content-align: center middle;
-    }
-
-    /* Price box diperkecil sedikit padding-nya */
-    #price-box {
-        margin: 0;
-        padding: 0;
-    }
-
-    #portfolio-section {
-        border: tall yellow;
-        height: 100%;
-        padding: 1;
-    }
-
-    #news-section {
-        border: tall magenta;
-        padding: 1;
-        overflow-y: scroll; 
-        height: 100%;
-    }
-
-    #news-display {
-       text-style: italic;
-       color: $text-muted;
-    }
-    #weights-column {
-        width: 50%;
-        height: 100%;
-        padding-left: 1;
-    }
-    #data-sentiment-column {
-        width: 50%;
-        height: 100%;
-        border-right: solid $primary; /* Adds a clean vertical separator */
-        padding-right: 1;
-        height: 100%;
-        overflow-y: scroll; 
-    }
-    """
-
+    CSS_PATH = "style.tcss"
 
     def __init__(self):
         super().__init__()
+        load_dotenv()
         self.data = Data("BTC-USD",'yfinance','yfinance')
         self.optimizerEng = OptimizerEngine()
+        self.api_key = os.getenv("BITGET_API_KEY")
+        self.secret  = os.getenv("BITGET_PRIVATE_KEY")
+        self.trade = TradeExecutor(self.api_key,self.secret,app_reference=self)
         
 
     def compose(self) -> ComposeResult:
         yield Header()
         with Container(id="main-container"):
-            # Area Chart (Besar di Kiri)
+            # --- ROW 1 ---
+            # Top-Left: Large Chart Panel
             with Vertical(id="chart-section"):
                 yield PlotextPlot(id="main-chart")
             
-            # Area Price (Kecil di Kanan)
+            # Top-Right: Small Live Price Panel
             with Vertical(id="price-section"):
                 yield Static("BTC LIVE", id="label")
                 yield Digits("0.00", id="price-box")
             
-            # Area Portfolio (Kiri Bawah)
-            with Vertical(id="portfolio-section"):
-                with Horizontal(id="portfolio-content"): # Split into columns
-                # Left Column
-                    with Vertical(id="data-sentiment-column"):
-                        yield Static("[b]SIGNAL & SENTIMENT[/b]")
-                        # We will put everything into this one display widget
-                        yield Static("Loading data...", id="sentiment-display")# Target this for updates
+            # --- ROW 2 (Now a full-width container split into 3 parts) ---
+            with Horizontal(id="bottom-row-container"):
+                
+                # Column 1: Signal & Sentiment (Left)
+                with Vertical(id="data-sentiment-column"):
+                    yield Static("SIGNAL & SENTIMENT", classes="section-title")
+                    yield Static("Loading data...", id="sentiment-display")
+                
+                # Column 2: Portfolio Allocations & Logs (Middle -> NOW IN THE CENTER)
+                with Vertical(id="portfolio-section"):
+                    with Horizontal(id="portfolio-header"):
+                        yield Label("PORTFOLIO DESIGNER", id="portfolio-title")
+                        yield Label("Total Value: $0.00", id="total-portfolio-value")
                     
-                    # Right Column
-                    with Vertical(id="weights-column"):
-                        yield Static("[b]PORTFOLIO[/b]")
-                        yield Static("Loading...", id="weights-display")
-            
-            # Area News (Kanan Bawah - Samping Portfolio)
-            with Vertical(id="news-section"):
-                yield Static("[b]LATEST NEWS[/b]\n")
-                yield Static("Loading...", id="news-display")
+                    # Back to side-by-side columns since we have tons of width now!
+                    with Horizontal(id="portfolio-body"):
+                        with Vertical(id="weights-column"):
+                            yield Label("Target Weights", classes="column-header")
+                            yield Static("BTC-USD: 40.00%\nBNB-USD: 20.00%\nUSDT-USD: 40.00%", id="weights-display")
+                        
+                        with Vertical(id="execution-column"):
+                            yield Label("Live Execution Log (BITGET)", classes="column-header")
+                            yield Static("Awaiting trade signal...", id="execution-display")
+
+                # Column 3: Placeholder/News box to fill the remaining Right Corner
+                with Vertical(id="news-section"):
+                    yield Static("SYSTEM METRICS", classes="section-title")
+                    yield Static("All execution pathways nominal.", id="news-display")
         yield Footer()
 
 
     def on_mount(self) -> None:
         # 1. Jalankan semua update sekali sekarang juga!
         self.update_price()
-        self.update_news()
+        # self.update_news()
         self.background_update()
         # 2. Baru pasang jadwal intervalnya
         self.set_interval(2.0, self.update_price)
         self.set_interval(60.0, self.update_chart)
-        self.set_interval(120.0, self.update_news)
+        # self.set_interval(120.0, self.update_news)
         self.set_interval(60.0, self.update_sentiments_data)
         self.set_interval(3600.0, self.update_weight)
+
 
     @work(thread=True)
     def background_update(self):
@@ -231,11 +192,14 @@ class QuantTerminalApp(App):
                         weights_text += f"{symbol}: [{color}]{percentage:.2f}%[/]\n"
 
                         self.query_one("#weights-display", Static).update(weights_text)
+                
+            self.trade.Execute(weights=weights)
 
 
         except Exception as e:
              self.query_one("#portofolio", Static).update(f"[red]Portofolio Error:[/] {str(e)}")
-
+    
+    
             
 
 
