@@ -6,7 +6,7 @@ Before we begin install all of the requirenment in requirenment.txt
 ```bash
 pip install -r requirements.txt
 ```
-make sure you have an secret and api key to the desired exchange (Currently only support mecx) place the secret and the api_key in the .env file
+make sure you have an secret and api key to the desired exchange (Currently only support bitget) place it in the BITGET_API_KEY and BITGET_PRIVATE_KEY in the .env file
 
 ```bash
 python Dashboard/dashboard.py
